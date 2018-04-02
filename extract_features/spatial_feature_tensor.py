@@ -59,10 +59,14 @@ def parse_replay(replay_player_path, sampled_action_path, reward, race, enemy_ra
         action_id = -1
         if action is not None:
             try:
-                func_id = feat.reverse_action(action).function
+                pysc2_function_call = feat.reverse_action(action) 
+                func_id = pysc2_function_call.function
                 func_name = FUNCTIONS[func_id].name
-                if func_name.split('_')[0] in {'Build', 'Train', 'Research', 'Morph', 'Cancel', 'Halt', 'Stop'}:
-                    action_id = func_id
+                func_args = pysc2_function_call.arguments
+                # func_id = feat.reverse_action(action).function
+                # func_name = FUNCTIONS[func_id].name
+                if func_name.split('_')[0] in {'Attack', 'Scan', 'Behavior','BorrowUp', 'Effect','Hallucination', 'Harvest', 'Hold','Land','Lift', 'Load','Move','Patrol','Rally','Smart','TrainWarp', 'UnloadAll', 'UnloadAllAt''Build', 'Train', 'Research', 'Morph', 'Cancel', 'Halt', 'Stop'}:
+                    action_id = (func_id, func_name, func_args)
             except:
                 pass
 
