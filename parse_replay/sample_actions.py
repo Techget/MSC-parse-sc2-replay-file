@@ -12,8 +12,11 @@ from google.protobuf.json_format import Parse
 from pysc2.lib import features
 from pysc2.lib import  FUNCTIONS
 from s2clientprotocol import sc2api_pb2 as sc_pb
+from s2clientprotocol import common_pb2 as sc_common
+import sys
 
 FLAGS = flags.FLAGS
+FLAGS(sys.argv)
 flags.DEFINE_string(name='hq_replay_set', default='../high_quality_replays/Terran_vs_Terran.json',
                     help='File storing replays list')
 flags.DEFINE_string(name='parsed_replays', default='../parsed_replays',
@@ -22,7 +25,7 @@ flags.DEFINE_string(name='infos_path', default='../replays_infos',
                     help='Paths for infos of replays')
 flags.DEFINE_integer(name='step_mul', default=8,
                      help='step size')
-flags.DEFINE_integer(name='skip', default=96,
+flags.DEFINE_integer(name='skip', default=8, #96
                      help='# of skipped frames')
 
 def sample_action_from_player(action_path):
@@ -39,7 +42,9 @@ def sample_action_from_player(action_path):
             try:
                 func_id = feat.reverse_action(action).function
                 func_name = FUNCTIONS[func_id].name
-                if func_name.split('_')[0] in {'Build', 'Train', 'Research', 'Morph', 'Cancel', 'Halt', 'Stop'}:
+                if func_name.split('_')[0] in {'Attack', 'Scan', 'Behavior','BorrowUp', 'Effect','Hallucination', 'Harvest', 'Hold','Land','Lift', \
+			'Load','Move','Patrol','Rally','Smart','TrainWarp', 'UnloadAll', 'UnloadAllAt''Build', 'Train', 'Research', 'Morph',\
+			 'Cancel', 'Halt', 'Stop'}:
                     action_name = func_name
                     break
             except:
@@ -62,7 +67,7 @@ def sample_action(replay_path, action_path, sampled_path):
     proto = Parse(info['info'], sc_pb.ResponseReplayInfo())
     for p in proto.player_info:
         player_id = p.player_info.player_id
-        race = sc_pb.Race.Name(p.player_info.race_actual)
+        race = sc_common.Race.Name(p.player_info.race_actual)
 
         action_file = os.path.join(action_path, race, '{}@{}'.format(player_id, replay_path))
         if not os.path.isfile(action_file):

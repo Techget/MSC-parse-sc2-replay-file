@@ -18,6 +18,7 @@ from google.protobuf.json_format import MessageToJson
 from pysc2 import run_configs
 from pysc2.lib import point
 from s2clientprotocol import sc2api_pb2 as sc_pb
+from s2clientprotocol import common_pb2 as sc_common
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string(name='hq_replay_set', default='../high_quality_replays/Terran_vs_Terran.json',
@@ -25,9 +26,9 @@ flags.DEFINE_string(name='hq_replay_set', default='../high_quality_replays/Terra
 flags.DEFINE_string(name='save_path', default='../parsed_replays',
                     help='Path for saving results')
 
-flags.DEFINE_integer(name='n_instance', default=16,
+flags.DEFINE_integer(name='n_instance', default=32, #16
                      help='# of processes to run')
-flags.DEFINE_integer(name='step_mul', default=8,
+flags.DEFINE_integer(name='step_mul', default=8, #8
                      help='step size')
 flags.DEFINE_integer(name='batch_size', default=10,
                      help='# of replays to process in one iter')
@@ -74,7 +75,7 @@ class ReplayProcessor(multiprocessing.Process):
                             map_data = self.run_config.map_data(info.local_map_path)
 
                         for player_info in info.player_info:
-                            race = sc_pb.Race.Name(player_info.player_info.race_actual)
+                            race = sc_common.Race.Name(player_info.player_info.race_actual)
                             player_id = player_info.player_info.player_id
 
                             if os.path.isfile(os.path.join(FLAGS.save_path, race,

@@ -5,6 +5,7 @@ from __future__ import print_function
 import os
 import json
 import glob
+import sys
 from absl import flags
 from tqdm import tqdm
 
@@ -12,6 +13,7 @@ from google.protobuf.json_format import Parse
 
 from pysc2 import run_configs
 from s2clientprotocol import sc2api_pb2 as sc_pb
+from s2clientprotocol import common_pb2 as sc_common
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string(name='infos_path', default='../replays_infos',
@@ -30,9 +32,12 @@ flags.DEFINE_integer(name='min_mmr', default=1000,
 
 def valid_replay(info, ping):
     """Make sure the replay isn't corrupt, and is worth looking at."""
+    #print(info)
     if info.HasField("error"):
         return False
     if info.base_build != ping.base_build:
+        print('info',info.base_build)
+        print('ping',ping.base_build)
         return False
     if info.game_duration_loops < FLAGS.min_duration:
         return False
@@ -69,7 +74,7 @@ def main():
         proto = Parse(info['info'], sc_pb.ResponseReplayInfo())
         if valid_replay(proto, ping):
             players_info = proto.player_info
-            races = '_vs_'.join(sorted(sc_pb.Race.Name(player_info.player_info.race_actual)
+            races = '_vs_'.join(sorted(sc_common.Race.Name(player_info.player_info.race_actual)
                                        for player_info in players_info))
             if races not in result:
                 result[races] = []
@@ -81,4 +86,5 @@ def main():
             json.dump(v, f)
 
 if __name__ == '__main__':
+    FLAGS(sys.argv)
     main()

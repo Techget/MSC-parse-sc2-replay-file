@@ -15,6 +15,8 @@ from pysc2.lib import features
 from pysc2.lib import FUNCTIONS
 from pysc2.lib import static_data
 from s2clientprotocol import sc2api_pb2 as sc_pb
+from s2clientprotocol import common_pb2 as sc_common
+import sys
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string(name='hq_replay_set', default='../high_quality_replays/Terran_vs_Terran.json',
@@ -33,10 +35,12 @@ def process_replay(sampled_action, actions, observations, feat, units_info, rewa
         state['action'] = None
         if action is not None:
             try:
-                func_id = feat.reverse_action(action).function
+                pysc2_function_call = feat.reverse_action(action) 
+                func_id = pysc2_function_call.function
                 func_name = FUNCTIONS[func_id].name
-                if func_name.split('_')[0] in {'Build', 'Train', 'Research', 'Morph', 'Cancel', 'Halt', 'Stop'}:
-                    state['action'] = (func_id, func_name)
+                func_args = pysc2_function_call.arguments
+                if func_name.split('_')[0] in {'Attack', 'Scan', 'Behavior','BorrowUp', 'Effect','Hallucination', 'Harvest', 'Hold','Land','Lift', 'Load','Move','Patrol','Rally','Smart','TrainWarp', 'UnloadAll', 'UnloadAllAt''Build', 'Train', 'Research', 'Morph', 'Cancel', 'Halt', 'Stop'}:
+                    state['action'] = (func_id, func_name, func_args)
             except ValueError:
                 pass
 
@@ -135,9 +139,19 @@ def parse_replay(replay_player_path, sampled_action_path, reward):
                 for idx in sampled_action_id]
 
     # Observations
-    observations =  [obs for obs in stream.parse(os.path.join(FLAGS.parsed_replay_path,
-                            'SampledObservations', replay_player_path), sc_pb.ResponseObservation)]
+    print(os.path.join(FLAGS.parsed_replay_path,'SampledObservations', replay_player_path))
+    try:
+        observations =  [obs for obs in stream.parse(os.path.join(FLAGS.parsed_replay_path,
+                                'SampledObservations', replay_player_path), sc_pb.ResponseObservation)]
+        print('read observations successfully')
+    except:
+        print('corrupted file skip')
+        return
 
+    if len(observations) == 0:
+        return
+
+    print(len(sampled_action), len(sampled_action_id), len(actions), len(observations))
     assert len(sampled_action) == len(sampled_action_id) == len(actions) == len(observations)
 
     states = process_replay(sampled_action, actions, observations, feat, units_info, reward)
@@ -165,7 +179,7 @@ def main():
         replay_name = os.path.basename(replay_path)
         sampled_action_path = os.path.join(FLAGS.parsed_replay_path, 'SampledActions', race_vs_race, replay_name)
         for player_info in info.player_info:
-            race = sc_pb.Race.Name(player_info.player_info.race_actual)
+            race = sc_common.Race.Name(player_info.player_info.race_actual)
             player_id = player_info.player_info.player_id
             reward = player_info.player_result.result
 
@@ -175,4 +189,5 @@ def main():
         pbar.update()
 
 if __name__ == '__main__':
+    FLAGS(sys.argv)
     main()

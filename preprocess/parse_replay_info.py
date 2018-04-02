@@ -16,6 +16,7 @@ from future.builtins import range
 from google.protobuf.json_format import MessageToJson
 
 from pysc2 import run_configs
+import sys
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string(name='replays_paths', default='./;',
@@ -92,4 +93,5 @@ def main():
         print("Caught KeyboardInterrupt, exiting.")
 
 if __name__ == '__main__':
+    FLAGS(sys.argv)
     main()

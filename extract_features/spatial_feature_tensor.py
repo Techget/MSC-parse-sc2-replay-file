@@ -17,11 +17,14 @@ from google.protobuf.json_format import Parse
 
 from pysc2.lib import FUNCTIONS
 from s2clientprotocol import sc2api_pb2 as sc_pb
+from s2clientprotocol import common_pb2 as sc_common
 
 from game_state import load_stat
 from SpatialFeatures import SpatialFeatures
+import sys
 
 FLAGS = flags.FLAGS
+FLAGS(sys.argv)
 flags.DEFINE_string(name='hq_replay_set', default='../high_quality_replays/Terran_vs_Terran.json',
                     help='File storing replays list')
 flags.DEFINE_string(name='parsed_replay_path', default='../parsed_replays',
@@ -93,7 +96,7 @@ class Parser(object):
         replay_name = os.path.basename(replay_path)
         sampled_action_path = os.path.join(FLAGS.parsed_replay_path, 'SampledActions', self.race_vs_race, replay_name)
         for player_info in info.player_info:
-            race = sc_pb.Race.Name(player_info.player_info.race_actual)
+            race = sc_common.Race.Name(player_info.player_info.race_actual)
             player_id = player_info.player_info.player_id
             reward = 2 - player_info.player_result.result
 

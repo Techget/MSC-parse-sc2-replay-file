@@ -18,7 +18,7 @@ from google.protobuf.json_format import MessageToJson
 from pysc2 import run_configs
 from pysc2.lib import point
 from s2clientprotocol import sc2api_pb2 as sc_pb
-
+from s2clientprotocol import common_pb2 as sc_common
 import stream
 
 FLAGS = flags.FLAGS
@@ -27,7 +27,7 @@ flags.DEFINE_string(name='hq_replay_set', default='../high_quality_replays/Terra
 flags.DEFINE_string(name='save_path', default='../parsed_replays',
                     help='Path for saving results')
 
-flags.DEFINE_integer(name='n_instance', default=16,
+flags.DEFINE_integer(name='n_instance', default=64, #16
                      help='# of processes to run')
 flags.DEFINE_integer(name='batch_size', default=10,
                      help='# of replays to process in one iter')
@@ -83,7 +83,7 @@ class ReplayProcessor(multiprocessing.Process):
                             map_data = self.run_config.map_data(info.local_map_path)
 
                         for player_info in info.player_info:
-                            race = sc_pb.Race.Name(player_info.player_info.race_actual)
+                            race = sc_common.Race.Name(player_info.player_info.race_actual)
                             player_id = player_info.player_info.player_id
 
                             observation_path = os.path.join(FLAGS.save_path, race,
@@ -154,6 +154,7 @@ def main():
         with open(FLAGS.hq_replay_set) as f:
             replay_list = json.load(f)
         replay_list = sorted([p for p, _ in replay_list])
+        #print('~~~~~~~~', replay_list)
 
         replay_queue = multiprocessing.JoinableQueue(FLAGS.n_instance * 10)
         replay_queue_thread = threading.Thread(target=replay_queue_filler,
